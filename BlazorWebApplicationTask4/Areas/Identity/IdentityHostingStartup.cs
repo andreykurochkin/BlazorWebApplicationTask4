@@ -15,6 +15,11 @@ namespace BlazorWebApplicationTask4.Areas.Identity
         public void Configure(IWebHostBuilder builder)
         {
             builder.ConfigureServices((context, services) => {
+                services.AddDbContext<ApplicationDBContext>(options =>
+                options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
+
+                services.AddIdentity<ApplicationUser, IdentityRole>()
+                    .AddEntityFrameworkStores<ApplicationDBContext>();
             });
         }
     }
