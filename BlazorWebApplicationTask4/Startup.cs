@@ -23,7 +23,19 @@ namespace BlazorWebApplicationTask4 {
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services) {
             services.AddAuthentication("Identity.Application")
-                .AddCookie();
+                .AddCookie()
+                .AddGoogle(options => {
+                    options.ClientId = Configuration["Authentication:Google:Id"];
+                    options.ClientSecret = Configuration["Authentication:Google:Secret"];
+                })
+                .AddFacebook(options => {
+                    options.AppId = "1068783020596944";
+                    options.AppSecret = "9bcd8f5b6212e8441d0648af3a377770";
+                })
+                .AddMicrosoftAccount(options => {
+                    options.ClientId = "cf4cd86c-476c-4a6a-9453-55dddc095132";
+                    options.ClientSecret = "8BZ7Q~nTKa.j.hZ0Gud4~0LBJdzMsPQOkSJu3";
+                }); ;
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();

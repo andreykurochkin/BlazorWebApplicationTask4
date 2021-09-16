@@ -18,9 +18,21 @@ namespace BlazorWebApplicationTask4.Areas.Identity
                 services.AddDbContext<ApplicationDBContext>(options =>
                 options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
 
-                services.AddIdentity<ApplicationUser, IdentityRole>()
-                    .AddEntityFrameworkStores<ApplicationDBContext>();
+                services.AddDefaultIdentity<ApplicationUser>().
+                    AddEntityFrameworkStores<ApplicationDBContext>();
+
+                //services.AddIdentity<ApplicationUser, IdentityRole>()
+                //    .AddEntityFrameworkStores<ApplicationDBContext>();
             });
+
+            //builder.ConfigureServices((context, services) => {
+            //    services.AddDbContext<EmployeeManagementWebContext>(options =>
+            //        options.UseSqlServer(
+            //            context.Configuration.GetConnectionString("EmployeeManagementWebContextConnection")));
+
+            //    services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            //        .AddEntityFrameworkStores<EmployeeManagementWebContext>();
+            //});
         }
     }
 }
