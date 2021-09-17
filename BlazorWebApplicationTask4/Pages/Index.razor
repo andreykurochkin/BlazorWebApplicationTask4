@@ -1,7 +1,42 @@
-﻿@page "/"
+﻿@using System.Collections.Generic
+@using System.Linq
+@using System.Threading.Tasks
+@using BlazorWebApplicationTask4.Areas.Identity.Data
+@using Microsoft.AspNetCore.Identity
+@using BlazorWebApplicationTask4.Areas.Identity.Pages.Account
+@using Radzen.Blazor
+@using System.Globalization
+@page "/"
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+<h1>Radzen Blazor Chart pie series</h1>
+<div class="row">
+    <div class="col-md-6 col-sm-12 p-4">
+        <RadzenChart>
+            <RadzenPieSeries Data="@GetUserLogins().Result.ToArray()" Title="Revenue" CategoryProperty="ProviderDisplayName" ValueProperty="UserCount" />
+        </RadzenChart>
+    </div>
+</div>
+
+@code {
+    async Task<IEnumerable<UserLogin>> GetUserLogins() {
+        return (await SignInManager.GetExternalAuthenticationSchemesAsync())?
+            .GroupBy(l => l.DisplayName)
+    .Select(g => new UserLogin() { ProviderDisplayName = g.Key, UserCount = (double)g.Count() });
+    }
+
+    class UserLogin {
+        public string ProviderDisplayName { get; set; }
+        public double UserCount { get; set; }
+    }
+}

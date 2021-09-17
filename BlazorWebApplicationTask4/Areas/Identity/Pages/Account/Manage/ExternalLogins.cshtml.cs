@@ -23,6 +23,7 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
+        //todo open here
         public IList<UserLoginInfo> CurrentLogins { get; set; }
 
         public IList<AuthenticationScheme> OtherLogins { get; set; }
