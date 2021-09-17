@@ -6,20 +6,18 @@
 @using BlazorWebApplicationTask4.Areas.Identity.Pages.Account
 @using Radzen.Blazor
 @using System.Globalization
+
 @page "/"
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider Provider
 
+<h1>Users digest</h1>
 
-<h1>Hello, world!</h1>
+<Greetings Link="/identity/account/login" />
 
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-<h1>Radzen Blazor Chart pie series</h1>
 <div class="row">
     <div class="col-md-6 col-sm-12 p-4">
         <RadzenChart>
@@ -38,5 +36,10 @@ Welcome to your new app.
     class UserLogin {
         public string ProviderDisplayName { get; set; }
         public double UserCount { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync() {
+        var state = await Provider.GetAuthenticationStateAsync();
+        var userName = state?.User?.Identity?.Name ?? "Not authenticated user";
     }
 }

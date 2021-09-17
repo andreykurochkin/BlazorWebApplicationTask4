@@ -1,0 +1,19 @@
+﻿<div class="alert alert-secondary mt-4" role="alert">
+    <span class="text-nowrap">
+<AuthorizeView>
+    <Authorized>
+        <strong>Welcome userName</strong>
+    </Authorized>
+    <NotAuthorized>
+        U r ! authorized. Go 2 <a class="font-weight-bold" href="@Link">Log in </a>
+    </NotAuthorized>
+</AuthorizeView>
+    </span>
+</div>
+
+@code {
+    // Demonstrates how a parent component can supply parameters
+    [Parameter]
+    public string Link { get; set; }
+
+}

@@ -5,6 +5,8 @@
 @using Radzen.Blazor
 @using Microsoft.Extensions.Logging
 
+@attribute [Authorize]
+
 @inject NavigationManager NavigationManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
