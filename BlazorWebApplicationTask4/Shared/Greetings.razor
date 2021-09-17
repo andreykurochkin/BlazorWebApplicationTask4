@@ -2,7 +2,7 @@
     <span class="text-nowrap">
 <AuthorizeView>
     <Authorized>
-        <strong>Welcome userName</strong>
+        <strong>Welcome @context.User.Identity.Name</strong>
     </Authorized>
     <NotAuthorized>
         U r ! authorized. Go 2 <a class="font-weight-bold" href="@Link">Log in </a>
