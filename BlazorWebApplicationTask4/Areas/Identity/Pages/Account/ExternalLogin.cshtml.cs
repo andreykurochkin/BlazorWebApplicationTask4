@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using static BlazorWebApplicationTask4.Pages.FetchData;
 
 namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
 {
@@ -105,7 +106,14 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
                         Email = info.Principal.FindFirstValue(ClaimTypes.Email)
                     };
                 }
-                return Page();
+
+                //1
+                //await OnPostConfirmationAsync();    // return to login page
+                //return Page();
+
+                //2
+                await OnPostConfirmationAsync();    // return to login page
+                return Redirect("/");
             }
         }
 
@@ -122,7 +130,7 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email };
+                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email, SocialName = info.ProviderDisplayName, FirstLoginDate = DateTime.UtcNow, Status = UserStatus.Active.ToString() };
 
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
