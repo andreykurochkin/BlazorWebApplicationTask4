@@ -13,4 +13,11 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Data {
         }
 
     }
+    //public class NarrowDbContext : DbContext {
+    //    protected override void OnModelCreating(ModelBuilder modelBuilder) {
+    //        base.OnModelCreating(modelBuilder);
+
+    //        modelBuilder.Entity<ApplicationUser>
+    //    }
+    //}
 }

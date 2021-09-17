@@ -1,46 +1,132 @@
 ﻿@page "/fetchdata"
 
-@using BlazorWebApplicationTask4.Data
-@inject WeatherForecastService ForecastService
+@using BlazorWebApplicationTask4.Areas.Identity.Data
+@using Microsoft.AspNetCore.Identity
+@using Radzen.Blazor
+@using Microsoft.Extensions.Logging
 
-<h1>Weather forecast</h1>
+@inject NavigationManager NavigationManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject ILogger<FetchData> _logger
 
-<p>This component demonstrates fetching data from a service.</p>
+<h1>Identity users</h1>
 
-@if (forecasts == null)
-{
+@if (users == null) {
     <p><em>Loading...</em></p>
+} else {
+
+    <h1>DataGrid <strong>Multiple Column Sorting</strong></h1>
+    <div class="table">
+        <RadzenButton Icon="highlight_off" style="margin-bottom: 10px" Text="Block" Click="Foo" />
+        <RadzenButton Icon="accessibility" style="margin-bottom: 10px"  />
+        <RadzenButton Icon="delete" style="margin-bottom: 10px"  />
+        <RadzenDataGrid AllowFiltering="true"
+                        FilterMode="FilterMode.Simple"
+                        LogicalFilterOperator="LogicalFilterOperator.Or"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        PageSize="5"
+                        AllowMultiColumnSorting="true"
+                        AllowPaging="true"
+                        AllowSorting="true"
+                        Data="@filteredUsers"
+                        TItem="ApplicationUser"
+                        ColumnWidth="300px"
+                        SelectionMode="DataGridSelectionMode.Multiple"
+                        @bind-Value=@selectedUsers>
+            <Columns>
+                <RadzenDataGridColumn TItem="ApplicationUser" Width="40px" Sortable="true" Filterable="true">
+                    <HeaderTemplate>
+                        <RadzenCheckBox TriState="false"
+                                        TValue="bool"
+                                        Value="@(filteredUsers.Any(i => selectedUsers != null && selectedUsers.Contains(i)))"
+                                        Change="@(args => selectedUsers = args ? filteredUsers.ToList() : null)" />
+                    </HeaderTemplate>
+                    <Template Context="data">
+                        <RadzenCheckBox TriState="false"
+                                        Value="@(selectedUsers != null && selectedUsers.Contains(data))" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ApplicationUser" Property="Id" Title="Id" Sortable="true" Filterable="false" />
+                <RadzenDataGridColumn TItem="ApplicationUser" Property="Email" Title="Email" Width="150px" Sortable="true" Filterable="false" />
+                <RadzenDataGridColumn TItem="ApplicationUser" Property="FirstLoginDate" Title="1st Login" FormatString="{0:d}" Sortable="true" Filterable="false" />
+                <RadzenDataGridColumn TItem="ApplicationUser" Property="LastLogoutDate" Title="Last Login" FormatString="{0:d}" Sortable="true" Filterable="false" />
+                <RadzenDataGridColumn TItem="ApplicationUser" Property="SocialName" Title="Social Name" Sortable="true" Filterable="true">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="@currentSocialMedia"
+                                        TextProperty="Text"
+                                        ValueProperty="Value"
+                                        Style="width:100%"
+                                        Change=@OnChangeSocialMedia
+                                        Data="@(Enum.GetValues(typeof(SocialMedia)).Cast<SocialMedia>().Select(t => new { Text = $"{t}", Value = $"{t}" }))" />
+
+                    </FilterTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="ApplicationUser" Property="Status" Title="Status" Sortable="true" Filterable="true">
+                    <FilterTemplate>
+                        <RadzenDropDown @bind-Value="@currentStatus"
+                                        TextProperty="Text"
+                                        ValueProperty="Value"
+                                        Style="width:100%"
+                                        Change=@OnChangeStatus
+                                        Data="@(Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().Select(t => new { Text = $"{t}", Value = $"{t}" }))" />
+
+                    </FilterTemplate>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+
 }
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+
 
 @code {
-    private WeatherForecast[] forecasts;
+    IEnumerable<ApplicationUser> users;
+    IList<ApplicationUser> selectedUsers;
+    IEnumerable<ApplicationUser> filteredUsers;
+    string currentSocialMedia;
+    string currentStatus;
 
-    protected override async Task OnInitializedAsync()
-    {
-        forecasts = await ForecastService.GetForecastAsync(DateTime.Now);
+    public enum SocialMedia {
+        Facebook,
+        Microsoft,
+        Google,
+        All = -1
+    }
+
+    public enum UserStatus {
+        Active,
+        Blocked,
+        All = -1
+    }
+
+    protected override async Task OnInitializedAsync() {
+        users = UserManager.Users;
+        filteredUsers = users;
+    }
+
+    void OnChangeSocialMedia() {
+        filteredUsers = users
+            .Where(e => !string.IsNullOrWhiteSpace(e.SocialName))
+            .Where(e => currentSocialMedia != SocialMedia.All.ToString() ? e.SocialName.Equals(currentSocialMedia) : true);
+        UpdateSelected();
+    }
+
+    void OnChangeStatus() {
+        filteredUsers = users
+            .Where(e => !string.IsNullOrWhiteSpace(e.Status))
+            .Where(e => currentStatus != UserStatus.All.ToString() ? e.Status.Equals(currentStatus) : true);
+        UpdateSelected();
+    }
+
+    void Foo() {
+        _logger.LogInformation($"users: {users.Count()}");
+        _logger.LogInformation($"selectedUsers: { selectedUsers?.Count()}");
+        _logger.LogInformation($"filteredUsers: { filteredUsers?.Count()}");
+    }
+
+    void UpdateSelected() {
+        var intersection = selectedUsers.Intersect(filteredUsers);
+        selectedUsers = intersection.ToList();
     }
 }
