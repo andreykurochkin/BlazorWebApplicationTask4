@@ -11,6 +11,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject ILogger<FetchData> _logger
+@inject NotificationService NotificationService
 
 <h1>Identity users</h1>
 
@@ -20,9 +21,12 @@
 
     <h1>DataGrid <strong>Multiple Column Sorting</strong></h1>
     <div class="table">
-        <RadzenButton Icon="highlight_off" style="margin-bottom: 10px" Text="Block" Click="Foo" />
-        <RadzenButton Icon="accessibility" style="margin-bottom: 10px"  />
-        <RadzenButton Icon="delete" style="margin-bottom: 10px"  />
+        <RadzenButton Icon="highlight_off" style="margin-bottom: 10px"
+                      Text="Block" />
+        <RadzenButton Icon="accessibility" style="margin-bottom: 10px" />
+        <RadzenButton Icon="delete"
+                      style="margin-bottom: 10px"
+                      Click=@DeleteUsers />
         <RadzenDataGrid AllowFiltering="true"
                         FilterMode="FilterMode.Simple"
                         LogicalFilterOperator="LogicalFilterOperator.Or"
@@ -121,14 +125,64 @@
         UpdateSelected();
     }
 
-    void Foo() {
-        _logger.LogInformation($"users: {users.Count()}");
-        _logger.LogInformation($"selectedUsers: { selectedUsers?.Count()}");
-        _logger.LogInformation($"filteredUsers: { filteredUsers?.Count()}");
-    }
+    //void Foo() {
+    //    _logger.LogInformation($"users: {users.Count()}");
+    //    _logger.LogInformation($"selectedUsers: { selectedUsers?.Count()}");
+    //    _logger.LogInformation($"filteredUsers: { filteredUsers?.Count()}");
+    //}
 
     void UpdateSelected() {
         var intersection = selectedUsers.Intersect(filteredUsers);
         selectedUsers = intersection.ToList();
+    }
+
+    void ShowNotification(NotificationMessage message) {
+        NotificationService.Notify(message);
+    }
+
+    private async Task DeleteUsers() {
+        if (selectedUsers is null) {
+            return;
+        }
+
+        foreach (var userFromTable in selectedUsers) {
+
+            var user = await UserManager.FindByIdAsync(userFromTable.Id);
+
+            try {
+                //var logins = await UserManager.GetLoginsAsync(user);
+                //foreach (var login in logins) {
+                //    await UserManager.RemoveLoginAsync(user, login.LoginProvider, login.ProviderKey);
+                //}
+
+                //var rolesForUser = await UserManager.GetRolesAsync(user);
+                //foreach (var role in rolesForUser) {
+                //    await UserManager.RemoveFromRoleAsync(user, role);
+                //}
+                await UserManager.DeleteAsync(user);
+            }
+            catch (Exception ex) {
+                _logger.LogInformation($"ex: {ex.Message}");
+            }
+
+
+            try {
+                await SignInManager.SignOutAsync();
+            }
+            catch (Exception ex) {
+                _logger.LogInformation($"ex: {ex.Message}");
+            }
+
+            var message = new NotificationMessage {
+                Severity = NotificationSeverity.Error,
+                Summary = "Error Summary",
+                Detail = "Error Detail",
+                Duration = 4000
+            };
+
+            NotificationService.Notify(message);
+            NavigationManager.NavigateTo("/");
+        }
+
     }
 }

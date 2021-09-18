@@ -21,16 +21,17 @@
 <div class="row">
     <div class="col-md-6 col-sm-12 p-4">
         <RadzenChart>
-            <RadzenPieSeries Data="@GetUserLogins().Result.ToArray()" Title="Revenue" CategoryProperty="ProviderDisplayName" ValueProperty="UserCount" />
+            <RadzenPieSeries Data="@GetUserLogins()" Title="Revenue" CategoryProperty="ProviderDisplayName" ValueProperty="UserCount" />
         </RadzenChart>
     </div>
 </div>
 
 @code {
-    async Task<IEnumerable<UserLogin>> GetUserLogins() {
-        return (await SignInManager.GetExternalAuthenticationSchemesAsync())?
-            .GroupBy(l => l.DisplayName)
-    .Select(g => new UserLogin() { ProviderDisplayName = g.Key, UserCount = (double)g.Count() });
+    private IEnumerable<UserLogin> GetUserLogins() {
+        return UserManager.Users
+            .GroupBy(u => u.SocialName)
+            .Select(g => new UserLogin() { ProviderDisplayName = g.Key, UserCount = (double)g.Count() })
+            .ToArray();
     }
 
     class UserLogin {

@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Radzen.Blazor;
+using Radzen;
 
 namespace BlazorWebApplicationTask4 {
     public class Startup {
@@ -48,6 +50,7 @@ namespace BlazorWebApplicationTask4 {
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
             services.AddLogging();
+            services.AddScoped<NotificationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
