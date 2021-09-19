@@ -14,6 +14,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Radzen.Blazor;
 using Radzen;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server;
 
 namespace BlazorWebApplicationTask4 {
     public class Startup {
@@ -48,6 +51,7 @@ namespace BlazorWebApplicationTask4 {
             //    options.UseSqlServer(_connectionString));
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
             services.AddSingleton<WeatherForecastService>();
             services.AddLogging();
             services.AddScoped<NotificationService>();
@@ -69,6 +73,12 @@ namespace BlazorWebApplicationTask4 {
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            //app.Use(async (context, next) => {
+            //    if (context.Request.Path.Equals("/Logout", System.StringComparison.OrdinalIgnoreCase)) {
+            //        await context.SignOutAsync();
+            //    }
+            //});
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapBlazorHub();

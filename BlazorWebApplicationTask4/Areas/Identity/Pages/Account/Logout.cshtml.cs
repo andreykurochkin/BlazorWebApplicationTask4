@@ -31,14 +31,14 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out.");
-            returnUrl = Url.Content("~/");
+            return RedirectToPage("/Index");
             if (returnUrl != null)
             {
                 return LocalRedirect(returnUrl);
             }
             else
             {
-                return RedirectToPage();
+                return RedirectToPage("~/");
             }
         }
     }

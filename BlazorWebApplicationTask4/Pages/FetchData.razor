@@ -21,12 +21,13 @@
 
     <h1>DataGrid <strong>Multiple Column Sorting</strong></h1>
     <div class="table">
-        <RadzenButton Icon="highlight_off" style="margin-bottom: 10px"
-                      Text="Block" />
-        <RadzenButton Icon="accessibility" style="margin-bottom: 10px" />
-        <RadzenButton Icon="delete"
-                      style="margin-bottom: 10px"
-                      Click=@DeleteUsers />
+                <RadzenButton Icon="highlight_off" style="margin-bottom: 10px"
+                              Text="Block"
+                              Click="@(args => { NavigationManager.NavigateTo("/", true); SignInManager.SignOutAsync(); })"/>
+                <RadzenButton Icon="accessibility" style="margin-bottom: 10px" />
+                <RadzenButton Icon="delete"
+                              style="margin-bottom: 10px"
+                              Click=@DeleteUsers />
         <RadzenDataGrid AllowFiltering="true"
                         FilterMode="FilterMode.Simple"
                         LogicalFilterOperator="LogicalFilterOperator.Or"
@@ -107,7 +108,7 @@
     }
 
     protected override async Task OnInitializedAsync() {
-        users = UserManager.Users;
+        users = new List<ApplicationUser>(UserManager.Users);
         filteredUsers = users;
     }
 
@@ -147,24 +148,10 @@
 
         foreach (var userFromTable in selectedUsers) {
 
+            var authState = await authStateTask;
+            authState.User.
+
             var user = await UserManager.FindByIdAsync(userFromTable.Id);
-
-            try {
-                //var logins = await UserManager.GetLoginsAsync(user);
-                //foreach (var login in logins) {
-                //    await UserManager.RemoveLoginAsync(user, login.LoginProvider, login.ProviderKey);
-                //}
-
-                //var rolesForUser = await UserManager.GetRolesAsync(user);
-                //foreach (var role in rolesForUser) {
-                //    await UserManager.RemoveFromRoleAsync(user, role);
-                //}
-                await UserManager.DeleteAsync(user);
-            }
-            catch (Exception ex) {
-                _logger.LogInformation($"ex: {ex.Message}");
-            }
-
 
             try {
                 await SignInManager.SignOutAsync();
@@ -173,16 +160,26 @@
                 _logger.LogInformation($"ex: {ex.Message}");
             }
 
+            try {
+                await UserManager.DeleteAsync(user);
+            }
+            catch (Exception ex) {
+                _logger.LogInformation($"ex: {ex.Message}");
+            }
+
             var message = new NotificationMessage {
-                Severity = NotificationSeverity.Error,
-                Summary = "Error Summary",
-                Detail = "Error Detail",
-                Duration = 4000
+                Style = "position: absolute; left: -1000px;",
+                Severity = NotificationSeverity.Success,
+                Summary = "User was deleted",
+                Detail = "Success Detail",
+                Duration = 40000
             };
 
             NotificationService.Notify(message);
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("/", true);
         }
-
     }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authStateTask { get; set; }
 }
