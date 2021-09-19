@@ -7,11 +7,14 @@
 
 @attribute [Authorize]
 
-@inject NavigationManager NavigationManager
+@inject NavigationManager _navigationManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject ILogger<FetchData> _logger
 @inject NotificationService NotificationService
+@*new section*@
+@inject HttpClient _httpClient
+@*new section*@
 
 <h1>Identity users</h1>
 
@@ -21,13 +24,17 @@
 
     <h1>DataGrid <strong>Multiple Column Sorting</strong></h1>
     <div class="table">
-                <RadzenButton Icon="highlight_off" style="margin-bottom: 10px"
-                              Text="Block"
-                              Click="@(args => { NavigationManager.NavigateTo("/", true); SignInManager.SignOutAsync(); })"/>
-                <RadzenButton Icon="accessibility" style="margin-bottom: 10px" />
-                <RadzenButton Icon="delete"
-                              style="margin-bottom: 10px"
-                              Click=@DeleteUsers />
+        <RadzenButton Icon="highlight_off" style="margin-bottom: 10px"
+                      Text="Block"
+                      Click="@(args => { _navigationManager.NavigateTo("/", true); SignInManager.SignOutAsync(); })" />
+        <RadzenButton Icon="accessibility" style="margin-bottom: 10px" />
+        <RadzenButton Icon="delete"
+                      style="margin-bottom: 10px"
+                      Click=@DeleteUsers />
+        <RadzenButton Icon="delete"
+                      Text="Delete in controller"
+                      style="margin-bottom: 10px"
+                      Click=@DeleteUsersInController />
         <RadzenDataGrid AllowFiltering="true"
                         FilterMode="FilterMode.Simple"
                         LogicalFilterOperator="LogicalFilterOperator.Or"
@@ -149,7 +156,6 @@
         foreach (var userFromTable in selectedUsers) {
 
             var authState = await authStateTask;
-            authState.User.
 
             var user = await UserManager.FindByIdAsync(userFromTable.Id);
 
@@ -176,10 +182,20 @@
             };
 
             NotificationService.Notify(message);
-            NavigationManager.NavigateTo("/", true);
+            _navigationManager.NavigateTo("/", true);
         }
     }
 
     [CascadingParameter]
     private Task<AuthenticationState> authStateTask { get; set; }
+
+    async Task DeleteUsersInController() {
+        foreach (var user in selectedUsers) {
+            _httpClient.DefaultRequestHeaders.Add("UserId", $"{user.Id}");
+            var url = _navigationManager.ToAbsoluteUri("/api/User/DeleteUser");
+            await _httpClient.GetAsync(url.ToString());
+        }
+
+    }
+
 }
