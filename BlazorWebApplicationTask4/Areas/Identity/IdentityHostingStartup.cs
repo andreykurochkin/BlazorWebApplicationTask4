@@ -18,8 +18,9 @@ namespace BlazorWebApplicationTask4.Areas.Identity
                 services.AddDbContext<ApplicationDBContext>(options =>
                 options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
 
-                services.AddDefaultIdentity<ApplicationUser>().
-                    AddEntityFrameworkStores<ApplicationDBContext>();
+                services.AddIdentity<ApplicationUser, IdentityRole>().
+                    AddEntityFrameworkStores<ApplicationDBContext>()
+                    .AddRoles<IdentityRole>();
 
                 //services.AddIdentity<ApplicationUser, IdentityRole>()
                 //    .AddEntityFrameworkStores<ApplicationDBContext>();

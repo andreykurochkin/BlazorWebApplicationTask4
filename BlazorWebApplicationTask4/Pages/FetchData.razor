@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Radzen.Blazor
 @using Microsoft.Extensions.Logging
+@using System.Net.Http
 
 @attribute [Authorize]
 
@@ -22,6 +23,7 @@
     <p><em>Loading...</em></p>
 } else {
 
+
     <h1>DataGrid <strong>Multiple Column Sorting</strong></h1>
     <div class="table">
         <RadzenButton Icon="highlight_off" style="margin-bottom: 10px"
@@ -35,38 +37,40 @@
                       Text="Delete in controller"
                       style="margin-bottom: 10px"
                       Click=@DeleteUsersInController />
-        <RadzenDataGrid AllowFiltering="true"
-                        FilterMode="FilterMode.Simple"
-                        LogicalFilterOperator="LogicalFilterOperator.Or"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        PageSize="5"
-                        AllowMultiColumnSorting="true"
-                        AllowPaging="true"
-                        AllowSorting="true"
-                        Data="@filteredUsers"
-                        TItem="ApplicationUser"
-                        ColumnWidth="300px"
-                        SelectionMode="DataGridSelectionMode.Multiple"
-                        @bind-Value=@selectedUsers>
-            <Columns>
-                <RadzenDataGridColumn TItem="ApplicationUser" Width="40px" Sortable="true" Filterable="true">
-                    <HeaderTemplate>
-                        <RadzenCheckBox TriState="false"
-                                        TValue="bool"
-                                        Value="@(filteredUsers.Any(i => selectedUsers != null && selectedUsers.Contains(i)))"
-                                        Change="@(args => selectedUsers = args ? filteredUsers.ToList() : null)" />
-                    </HeaderTemplate>
-                    <Template Context="data">
-                        <RadzenCheckBox TriState="false"
-                                        Value="@(selectedUsers != null && selectedUsers.Contains(data))" />
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ApplicationUser" Property="Id" Title="Id" Sortable="true" Filterable="false" />
-                <RadzenDataGridColumn TItem="ApplicationUser" Property="Email" Title="Email" Width="150px" Sortable="true" Filterable="false" />
-                <RadzenDataGridColumn TItem="ApplicationUser" Property="FirstLoginDate" Title="1st Login" FormatString="{0:d}" Sortable="true" Filterable="false" />
-                <RadzenDataGridColumn TItem="ApplicationUser" Property="LastLogoutDate" Title="Last Login" FormatString="{0:d}" Sortable="true" Filterable="false" />
-                <RadzenDataGridColumn TItem="ApplicationUser" Property="SocialName" Title="Social Name" Sortable="true" Filterable="true">
-                    <FilterTemplate>
+        @*<AuthorizeView Roles="view">
+            <Authorized>*@
+                <RadzenDataGrid AllowFiltering="true"
+                                FilterMode="FilterMode.Simple"
+                                LogicalFilterOperator="LogicalFilterOperator.Or"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                PageSize="5"
+                                AllowMultiColumnSorting="true"
+                                AllowPaging="true"
+                                AllowSorting="true"
+                                Data="@filteredUsers"
+                                TItem="ApplicationUser"
+                                ColumnWidth="300px"
+                                SelectionMode="DataGridSelectionMode.Multiple"
+                                @bind-Value=@selectedUsers>
+                    <Columns>
+                        <RadzenDataGridColumn TItem="ApplicationUser" Width="40px" Sortable="true" Filterable="true">
+                            <HeaderTemplate>
+                                <RadzenCheckBox TriState="false"
+                                                TValue="bool"
+                                                Value="@(filteredUsers.Any(i => selectedUsers != null && selectedUsers.Contains(i)))"
+                                                Change="@(args => selectedUsers = args ? filteredUsers.ToList() : null)" />
+                            </HeaderTemplate>
+                            <Template Context="data">
+                                <RadzenCheckBox TriState="false"
+                                                Value="@(selectedUsers != null && selectedUsers.Contains(data))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ApplicationUser" Property="Id" Title="Id" Sortable="true" Filterable="false" />
+                        <RadzenDataGridColumn TItem="ApplicationUser" Property="Email" Title="Email" Width="150px" Sortable="true" Filterable="false" />
+                        <RadzenDataGridColumn TItem="ApplicationUser" Property="FirstLoginDate" Title="1st Login" FormatString="{0:d}" Sortable="true" Filterable="false" />
+                        <RadzenDataGridColumn TItem="ApplicationUser" Property="LastLogoutDate" Title="Last Login" FormatString="{0:d}" Sortable="true" Filterable="false" />
+                        <RadzenDataGridColumn TItem="ApplicationUser" Property="SocialName" Title="Social Name" Sortable="true" Filterable="true">
+                            @*<FilterTemplate>
                         <RadzenDropDown @bind-Value="@currentSocialMedia"
                                         TextProperty="Text"
                                         ValueProperty="Value"
@@ -74,10 +78,10 @@
                                         Change=@OnChangeSocialMedia
                                         Data="@(Enum.GetValues(typeof(SocialMedia)).Cast<SocialMedia>().Select(t => new { Text = $"{t}", Value = $"{t}" }))" />
 
-                    </FilterTemplate>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ApplicationUser" Property="Status" Title="Status" Sortable="true" Filterable="true">
-                    <FilterTemplate>
+                    </FilterTemplate>*@
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ApplicationUser" Property="Status" Title="Status" Sortable="true" Filterable="true">
+                            @*<FilterTemplate>
                         <RadzenDropDown @bind-Value="@currentStatus"
                                         TextProperty="Text"
                                         ValueProperty="Value"
@@ -85,13 +89,15 @@
                                         Change=@OnChangeStatus
                                         Data="@(Enum.GetValues(typeof(UserStatus)).Cast<UserStatus>().Select(t => new { Text = $"{t}", Value = $"{t}" }))" />
 
-                    </FilterTemplate>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
+                    </FilterTemplate>*@
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            @*</Authorized>
+        </AuthorizeView>*@
     </div>
 
-}
+    }
 
 
 @code {
@@ -190,12 +196,14 @@
     private Task<AuthenticationState> authStateTask { get; set; }
 
     async Task DeleteUsersInController() {
+        if (selectedUsers is null) {
+            return;
+        }
         foreach (var user in selectedUsers) {
             _httpClient.DefaultRequestHeaders.Add("UserId", $"{user.Id}");
             var url = _navigationManager.ToAbsoluteUri("/api/User/DeleteUser");
             await _httpClient.GetAsync(url.ToString());
         }
-
+        _navigationManager.NavigateTo("/", true);
     }
-
 }

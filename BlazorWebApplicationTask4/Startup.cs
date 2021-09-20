@@ -17,6 +17,8 @@ using Radzen;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http;
 
 namespace BlazorWebApplicationTask4 {
     public class Startup {
@@ -55,6 +57,17 @@ namespace BlazorWebApplicationTask4 {
             services.AddSingleton<WeatherForecastService>();
             services.AddLogging();
             services.AddScoped<NotificationService>();
+
+            // ******
+            // BLAZOR COOKIE Auth Code (begin)
+            // From: https://github.com/aspnet/Blazor/issues/1554
+            // HttpContextAccessor
+            services.AddHttpContextAccessor();
+            services.AddScoped<HttpContextAccessor>();
+            services.AddHttpClient();
+            services.AddScoped<HttpClient>();
+            // BLAZOR COOKIE Auth Code (end)
+            // ******
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -73,7 +86,7 @@ namespace BlazorWebApplicationTask4 {
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
+            
             //app.Use(async (context, next) => {
             //    if (context.Request.Path.Equals("/Logout", System.StringComparison.OrdinalIgnoreCase)) {
             //        await context.SignOutAsync();
@@ -83,6 +96,12 @@ namespace BlazorWebApplicationTask4 {
             app.UseEndpoints(endpoints => {
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
+
+                // ******
+                // BLAZOR COOKIE Auth Code (begin)
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                // BLAZOR COOKIE Auth Code (end)
+                // ******
             });
         }
     }

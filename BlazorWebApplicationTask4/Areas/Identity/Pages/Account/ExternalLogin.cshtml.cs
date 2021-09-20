@@ -25,17 +25,19 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<ExternalLoginModel> _logger;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public ExternalLoginModel(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
             ILogger<ExternalLoginModel> logger,
-            IEmailSender emailSender)
-        {
+            IEmailSender emailSender,
+            RoleManager<IdentityRole> roleManager) {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
             _emailSender = emailSender;
+            _roleManager = roleManager;
         }
 
         [BindProperty]
@@ -117,6 +119,22 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
             }
         }
 
+        private void CreateRoleIfNeeded(string role) {
+            var roleExists = _roleManager.Roles.Any(r => r.Name.Equals(role, StringComparison.OrdinalIgnoreCase));
+            if (roleExists) {
+                return;
+            }
+            _roleManager.CreateAsync(new IdentityRole(role));
+        }
+
+        private void AddRoleToUser(ApplicationUser user, string role) {
+            var task = _userManager.IsInRoleAsync(user, role);
+            if (task.IsCompletedSuccessfully) {
+                return;
+            }
+            _userManager.AddToRoleAsync(user, "role");
+        }
+
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
@@ -130,11 +148,22 @@ namespace BlazorWebApplicationTask4.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = Input.Email, Email = Input.Email, SocialName = info.ProviderDisplayName, FirstLoginDate = DateTime.UtcNow, Status = UserStatus.Active.ToString() };
+                var user = new ApplicationUser { 
+                    UserName = Input.Email, 
+                    Email = Input.Email, 
+                    SocialName = info.ProviderDisplayName, 
+                    FirstLoginDate = DateTime.UtcNow, 
+                    Status = UserStatus.Active.ToString() 
+                };
 
                 var result = await _userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
+
+                    string theRole = "view";
+                    CreateRoleIfNeeded(theRole);
+                    AddRoleToUser(user, theRole);
+
                     result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
